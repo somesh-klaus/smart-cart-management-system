@@ -63,6 +63,11 @@ db.sqlite3-journal
 
 # Flask stuff:
 instance/
+
+# SQLite database files (runtime generated)
+*.db
+*.db-shm
+*.db-wal
 .webassets-cache
 
 # Scrapy stuff:
