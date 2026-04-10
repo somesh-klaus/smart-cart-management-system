@@ -11,8 +11,9 @@ import pytest
 # Make the backend importable
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-# Use a temporary database for tests
-TEST_DB = tempfile.mktemp(suffix=".db")
+# Use a temporary database for tests – mkstemp is safe (no TOCTOU race)
+_db_fd, TEST_DB = tempfile.mkstemp(suffix=".db")
+os.close(_db_fd)
 os.environ["TESTING"] = "1"
 
 import backend.app as app_module

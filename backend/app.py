@@ -155,7 +155,18 @@ def session_item_count(session_id: int, conn: sqlite3.Connection) -> int:
 # ─────────────────────────────────────────────
 
 def check_fraud(expected: float, actual: float) -> tuple[bool, float, str]:
-    """Return (is_fraud, deviation_pct, message)."""
+    """Determine whether an item's measured weight indicates fraud.
+
+    Args:
+        expected: The expected weight (in grams) from the product catalog.
+        actual:   The actual weight (in grams) measured by the load cell.
+
+    Returns:
+        A 3-tuple of:
+          - bool:  True if the deviation exceeds FRAUD_THRESHOLD_PCT.
+          - float: The deviation percentage (always non-negative).
+          - str:   A human-readable alert message, or "" when no fraud.
+    """
     if expected == 0:
         return False, 0.0, ""
     deviation_pct = abs(actual - expected) / expected * 100.0
