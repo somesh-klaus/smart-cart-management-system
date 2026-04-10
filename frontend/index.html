@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Cart Management System</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- ── Header ── -->
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🛒</span>
+        <span class="logo-text">Smart Cart</span>
+      </div>
+      <nav>
+        <button class="nav-btn active" data-page="dashboard">Dashboard</button>
+        <button class="nav-btn" data-page="catalog">Product Catalog</button>
+        <button class="nav-btn" data-page="carts">Cart Sessions</button>
+        <button class="nav-btn" data-page="fraud">Fraud Logs</button>
+        <button class="nav-btn" data-page="admin">Admin</button>
+      </nav>
+      <div class="connection-status" id="wsStatus">⚫ Disconnected</div>
+    </div>
+  </header>
+
+  <!-- ── Pages ── -->
+  <main>
+    <!-- Dashboard -->
+    <section class="page active" id="page-dashboard">
+      <h2>Live Dashboard</h2>
+      <div class="stats-grid">
+        <div class="stat-card" id="stat-active-carts">
+          <div class="stat-icon">🛒</div>
+          <div class="stat-value" id="val-active-carts">—</div>
+          <div class="stat-label">Active Carts</div>
+        </div>
+        <div class="stat-card" id="stat-products">
+          <div class="stat-icon">📦</div>
+          <div class="stat-value" id="val-products">—</div>
+          <div class="stat-label">Products</div>
+        </div>
+        <div class="stat-card alert-card" id="stat-fraud">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-value" id="val-fraud">—</div>
+          <div class="stat-label">Fraud Alerts Today</div>
+        </div>
+        <div class="stat-card" id="stat-revenue">
+          <div class="stat-icon">💰</div>
+          <div class="stat-value" id="val-revenue">—</div>
+          <div class="stat-label">Revenue Today</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <!-- Live Cart Monitor -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Live Cart Monitor</h3>
+            <div class="input-row">
+              <input type="text" id="monitorCartId" placeholder="Cart ID (e.g. CART_001)" />
+              <button class="btn btn-primary" onclick="subscribeCart()">Subscribe</button>
+            </div>
+          </div>
+          <div class="cart-info" id="cartInfo">
+            <div class="empty-state">Enter a Cart ID to start monitoring</div>
+          </div>
+          <div class="cart-items-list" id="cartItemsList"></div>
+        </div>
+
+        <!-- Recent Activity Feed -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Live Activity Feed</h3>
+            <button class="btn btn-sm" onclick="clearFeed()">Clear</button>
+          </div>
+          <ul class="activity-feed" id="activityFeed">
+            <li class="empty-state">Waiting for activity…</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Product Catalog -->
+    <section class="page" id="page-catalog">
+      <div class="page-header">
+        <h2>Product Catalog</h2>
+        <button class="btn btn-primary" onclick="openAddProduct()">+ Add Product</button>
+      </div>
+
+      <div class="search-bar">
+        <input type="text" id="searchProducts" placeholder="Search products…" oninput="filterProducts()" />
+      </div>
+
+      <div class="table-wrap">
+        <table id="productsTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>RFID UID</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Exp. Weight (g)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="productsBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Add/Edit Product Modal -->
+      <div class="modal-overlay" id="productModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h3 id="modalTitle">Add Product</h3>
+            <button class="close-btn" onclick="closeProductModal()">✕</button>
+          </div>
+          <form id="productForm" onsubmit="saveProduct(event)">
+            <input type="hidden" id="editProductId" />
+            <div class="form-group">
+              <label>RFID UID</label>
+              <input type="text" id="fRfidUid" placeholder="AA:BB:CC:DD" required />
+            </div>
+            <div class="form-group">
+              <label>Product Name</label>
+              <input type="text" id="fName" placeholder="Apple" required />
+            </div>
+            <div class="form-group">
+              <label>Category</label>
+              <input type="text" id="fCategory" placeholder="Fruit" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Price</label>
+                <input type="number" id="fPrice" step="0.01" min="0" placeholder="1.50" required />
+              </div>
+              <div class="form-group">
+                <label>Expected Weight (g)</label>
+                <input type="number" id="fWeight" step="0.1" min="0" placeholder="182" required />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn" onclick="closeProductModal()">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cart Sessions -->
+    <section class="page" id="page-carts">
+      <h2>Cart Sessions</h2>
+
+      <div class="table-wrap">
+        <table id="sessionsTable">
+          <thead>
+            <tr>
+              <th>Session ID</th>
+              <th>Cart ID</th>
+              <th>Status</th>
+              <th>Total</th>
+              <th>Started</th>
+              <th>Ended</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="sessionsBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Session Detail Modal -->
+      <div class="modal-overlay" id="sessionModal">
+        <div class="modal modal-wide">
+          <div class="modal-header">
+            <h3>Session Details – <span id="sessionModalCartId"></span></h3>
+            <button class="close-btn" onclick="closeSessionModal()">✕</button>
+          </div>
+          <div id="sessionDetail"></div>
+          <div class="modal-footer">
+            <button class="btn btn-danger" id="btnCheckout" onclick="checkoutCart()">Checkout</button>
+            <button class="btn" onclick="closeSessionModal()">Close</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Fraud Logs -->
+    <section class="page" id="page-fraud">
+      <h2>Fraud &amp; Alert Logs</h2>
+      <div class="table-wrap">
+        <table id="fraudTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cart ID</th>
+              <th>Product</th>
+              <th>Expected (g)</th>
+              <th>Actual (g)</th>
+              <th>Deviation %</th>
+              <th>Flagged At</th>
+            </tr>
+          </thead>
+          <tbody id="fraudBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Admin Panel -->
+    <section class="page" id="page-admin">
+      <h2>Admin Panel</h2>
+
+      <div class="two-col">
+        <div class="card">
+          <h3>Simulate RFID Scan</h3>
+          <p class="hint">Test the system without physical hardware.</p>
+          <div class="form-group">
+            <label>Cart ID</label>
+            <input type="text" id="simCartId" value="CART_001" />
+          </div>
+          <div class="form-group">
+            <label>RFID UID</label>
+            <input type="text" id="simRfidUid" placeholder="A1:B2:C3:D4" />
+          </div>
+          <div class="form-group">
+            <label>Actual Weight (g)</label>
+            <input type="number" id="simWeight" placeholder="182" step="0.1" />
+          </div>
+          <button class="btn btn-primary" onclick="simulateScan()">Simulate Scan</button>
+          <pre id="simResult" class="code-output"></pre>
+        </div>
+
+        <div class="card">
+          <h3>Quick Cart Actions</h3>
+          <div class="form-group">
+            <label>Cart ID</label>
+            <input type="text" id="adminCartId" placeholder="CART_001" />
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="adminCheckout()">Checkout Cart</button>
+            <button class="btn btn-danger" onclick="adminClearCart()">Clear Cart</button>
+            <button class="btn" onclick="adminViewCart()">View Cart</button>
+          </div>
+          <pre id="adminResult" class="code-output"></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
