@@ -233,7 +233,7 @@ async function deleteProduct(id) {
   if (!confirm("Delete this product?")) return;
   try {
     await apiFetch(`/api/products/${id}`, { method: "DELETE" });
-    showToast("Product deleted");
+    showToast("Product deleted", "success");
     loadProducts();
     updateDashboardStats();
   } catch (err) {

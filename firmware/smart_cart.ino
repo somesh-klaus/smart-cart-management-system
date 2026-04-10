@@ -56,11 +56,14 @@
 // OLED SSD1306 (I2C)
 // SDA  -> GPIO 21
 // SCL  -> GPIO 22
-// Note: GPIO 22 is also used as RFID_RST_PIN. This works because the RC522
-// RST line is only driven during SPI.begin()/PCD_Init() and remains HIGH
-// (inactive) afterwards, so it does not interfere with I2C SCL traffic.
-// If you experience I2C errors, move RST to a different GPIO (e.g. GPIO 27)
-// and update RFID_RST_PIN accordingly.
+//
+// WARNING: GPIO 22 is also defined as RFID_RST_PIN. This configuration works
+// in practice because the RC522 RST line is only toggled once during PCD_Init()
+// and then held HIGH (inactive), so it does not drive the I2C SCL line during
+// normal operation. However, this is a non-standard pin assignment that may
+// cause I2C communication errors on some board revisions or with certain RC522
+// modules. If you experience display glitches or RFID read failures, move the
+// RC522 RST to a dedicated GPIO (e.g. GPIO 27) and update RFID_RST_PIN below.
 #define OLED_WIDTH      128
 #define OLED_HEIGHT     64
 #define OLED_RESET      -1   // no reset pin; share Arduino reset
